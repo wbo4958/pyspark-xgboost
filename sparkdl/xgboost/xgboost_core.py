@@ -390,6 +390,9 @@ class _XgboostEstimator(Estimator, _XgboostParams, MLReadable, MLWritable):
             if use_external_storage:
                 external_storage_path_prefix = tempfile.mkdtemp()
             dtrain, dval = None, []
+
+            import time
+            start = time.time()
             if has_validation:
                 dtrain, dval = convert_partition_data_to_dmatrix(
                     pandas_df_iter, has_weight, has_validation,
@@ -400,6 +403,7 @@ class _XgboostEstimator(Estimator, _XgboostParams, MLReadable, MLWritable):
                     pandas_df_iter, has_weight, has_validation,
                     use_external_storage, external_storage_path_prefix, external_storage_precision)
 
+            print("bobby build dmatrix: ", time.time() - start)
             booster_params, kwargs_params = self._get_dist_booster_params(
                 train_params)
             context.barrier()
@@ -411,11 +415,13 @@ class _XgboostEstimator(Estimator, _XgboostParams, MLReadable, MLWritable):
             _rabit_args = _get_args_from_message_list(messages)
             evals_result = {}
             with RabitContext(_rabit_args, context):
+                start = time.time()
                 booster = worker_train(params=booster_params,
                                        dtrain=dtrain,
                                        evals=dval,
                                        evals_result=evals_result,
                                        **kwargs_params)
+                print("bobby train dmatrix: ", time.time() - start)
             context.barrier()
 
             if use_external_storage:
