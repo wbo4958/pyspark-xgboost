@@ -85,7 +85,7 @@ def _start_tracker(context, n_workers):
     env = {'DMLC_NUM_WORKER': n_workers}
     host = get_host_ip(context)
     rabit_context = RabitTracker(host_ip=host, n_workers=n_workers)
-    env.update(rabit_context.slave_envs())
+    env.update(rabit_context.worker_envs())
     rabit_context.start(n_workers)
     thread = Thread(target=rabit_context.join)
     thread.daemon = True
