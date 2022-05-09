@@ -475,7 +475,7 @@ class _XgboostEstimator(Estimator, _XgboostParams, MLReadable, MLWritable):
         xgb_model_creator = self._get_xgb_model_creator()  # pylint: disable=E1111
         fit_params = self._gen_fit_params_dict()
 
-        if self.getOrDefault(self.num_workers) > 1:
+        if self.getOrDefault(self.num_workers) >= 1:
             return self._fit_distributed(xgb_model_creator, dataset, has_weight,
                                          has_validation, fit_params)
 
