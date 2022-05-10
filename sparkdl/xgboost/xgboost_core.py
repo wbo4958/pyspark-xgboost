@@ -403,7 +403,7 @@ class _XgboostEstimator(Estimator, _XgboostParams, MLReadable, MLWritable):
                     pandas_df_iter, has_weight, has_validation,
                     use_external_storage, external_storage_path_prefix, external_storage_precision)
 
-            print("bobby build dmatrix: ", time.time() - start)
+            print("python bobby build dmatrix total : ", time.time() - start)
             booster_params, kwargs_params = self._get_dist_booster_params(
                 train_params)
             context.barrier()

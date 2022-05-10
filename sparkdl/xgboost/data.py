@@ -249,8 +249,11 @@ def convert_partition_data_to_dmatrix(partition_data_iter,
                 train_file, "{}/train.cache".format(file_prefix))
             return training_dmatrix
 
+    import time
+    start = time.time()
     # if we are not using external storage, we use the standard method of parsing data.
     train_val_data = prepare_train_val_data(partition_data_iter, has_weight, has_validation)
+    print("python bobby prepare pandas data before dmatrix : ", time.time() - start)
     if has_validation:
         train_X, train_y, train_w, _, val_X, val_y, val_w, _ = train_val_data
         training_dmatrix = DMatrix(data=train_X, label=train_y, weight=train_w)
@@ -258,5 +261,7 @@ def convert_partition_data_to_dmatrix(partition_data_iter,
         return training_dmatrix, val_dmatrix
     else:
         train_X, train_y, train_w, _ = train_val_data
+        start = time.time()
         training_dmatrix = DMatrix(data=train_X, label=train_y, weight=train_w)
+        print("python bobby build dmatrix : ", time.time() - start)
         return training_dmatrix
