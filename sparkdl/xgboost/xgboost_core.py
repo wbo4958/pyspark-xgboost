@@ -3,7 +3,7 @@ import tempfile
 from typing import Iterator, Tuple
 import numpy as np
 import pandas as pd
-from pyspark.ml.linalg import Vector
+from pyspark.ml.linalg import Vector, VectorUDT
 from scipy.special import expit, softmax
 from pyspark.ml import Estimator, Model
 from pyspark.ml.param.shared import HasFeaturesCol, HasLabelCol, HasWeightCol, \
@@ -441,7 +441,7 @@ class _XgboostEstimator(Estimator, _XgboostParams, MLReadable, MLWritable):
         label_col = col(self.getOrDefault(self.labelCol)).alias('label')
 
         features_type = dataset.schema[self.getOrDefault(self.featuresCol)].dataType
-        if isinstance(features_type, Vector):
+        if isinstance(features_type, VectorUDT):
             features_col = col(self.getOrDefault(self.featuresCol))
             features_array_col = vector_to_array(features_col, dtype="float32").alias("values")
             select_cols = [features_array_col, label_col]
