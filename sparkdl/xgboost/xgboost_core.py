@@ -223,20 +223,20 @@ class _XgboostParams(HasFeaturesCol, HasLabelCol, HasWeightCol,
                     f"tree_method should be 'gpu_hist' or None when use_gpu is True,"
                     f"found {self.getOrDefault(tree_method)}.")
 
-            gpu_per_task = _get_spark_session().sparkContext.getConf().get(
-                'spark.task.resource.gpu.amount')
-
-            if not gpu_per_task or int(gpu_per_task) < 1:
-                raise RuntimeError(
-                    "The spark cluster does not have the necessary GPU" +
-                    "configuration for the spark task. Therefore, we cannot" +
-                    "run xgboost training using GPU.")
-
-            if int(gpu_per_task) > 1:
-                get_logger(self.__class__.__name__).warning(
-                    f'You configured {gpu_per_task} GPU cores for each spark task, but in '
-                    f'XGBoost training, every Spark task will only use one GPU core.'
-                )
+            # gpu_per_task = _get_spark_session().sparkContext.getConf().get(
+            #     'spark.task.resource.gpu.amount')
+            #
+            # if not gpu_per_task or int(gpu_per_task) < 1:
+            #     raise RuntimeError(
+            #         "The spark cluster does not have the necessary GPU" +
+            #         "configuration for the spark task. Therefore, we cannot" +
+            #         "run xgboost training using GPU.")
+            #
+            # if int(gpu_per_task) > 1:
+            #     get_logger(self.__class__.__name__).warning(
+            #         f'You configured {gpu_per_task} GPU cores for each spark task, but in '
+            #         f'XGBoost training, every Spark task will only use one GPU core.'
+            #     )
 
 
 class _XgboostEstimator(Estimator, _XgboostParams, MLReadable, MLWritable):
