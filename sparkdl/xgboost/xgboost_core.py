@@ -3,6 +3,7 @@ import tempfile
 from typing import Iterator, Tuple
 import numpy as np
 import pandas as pd
+from pyspark.ml.linalg import Vector
 from scipy.special import expit, softmax
 from pyspark.ml import Estimator, Model
 from pyspark.ml.param.shared import HasFeaturesCol, HasLabelCol, HasWeightCol, \
@@ -436,10 +437,17 @@ class _XgboostEstimator(Estimator, _XgboostParams, MLReadable, MLWritable):
         self._validate_params()
         # Unwrap the VectorUDT type column "feature" to 4 primitive columns:
         # ['features.type', 'features.size', 'features.indices', 'features.values']
-        features_col = col(self.getOrDefault(self.featuresCol))
+
         label_col = col(self.getOrDefault(self.labelCol)).alias('label')
-        features_array_col = vector_to_array(features_col, dtype="float32").alias("values")
-        select_cols = [features_array_col, label_col]
+
+        features_type = dataset.schema[self.getOrDefault(self.featuresCol)].dataType
+        if isinstance(features_type, Vector):
+            features_col = col(self.getOrDefault(self.featuresCol))
+            features_array_col = vector_to_array(features_col, dtype="float32").alias("values")
+            select_cols = [features_array_col, label_col]
+        else:
+            features_col = col(self.getOrDefault(self.featuresCol))
+            select_cols = [features_col, label_col]
 
         has_weight = False
         has_validation = False
