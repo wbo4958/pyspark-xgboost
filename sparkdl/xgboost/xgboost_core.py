@@ -486,9 +486,13 @@ class _XgboostEstimator(Estimator, _XgboostParams, MLReadable, MLWritable):
         #  `Booster` instance which support pickling.
         def train_func(pandas_df_iter):
             xgb_model = xgb_model_creator()
+            import time
+            start = time.time()
             train_val_data = prepare_train_val_data(pandas_df_iter, has_weight,
                                                     has_validation,
                                                     has_base_margin)
+            print("python bobby build dmatrix : ", time.time() - start)
+
             # We don't need to handle callbacks param in fit_params specially.
             # User need to ensure callbacks is pickle-able.
             if has_validation:
@@ -507,11 +511,13 @@ class _XgboostEstimator(Estimator, _XgboostParams, MLReadable, MLWritable):
                               **fit_params)
             else:
                 train_X, train_y, train_w, train_base_margin = train_val_data
+                start = time.time()
                 xgb_model.fit(train_X,
                               train_y,
                               sample_weight=train_w,
                               base_margin=train_base_margin,
                               **fit_params)
+                print("python bobby train time: ", time.time() - start)
 
             ser_model_string = serialize_xgb_model(xgb_model)
             yield pd.DataFrame(data={'model_string': [ser_model_string]})
