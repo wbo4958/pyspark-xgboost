@@ -390,6 +390,9 @@ class _XgboostEstimator(Estimator, _XgboostParams, MLReadable, MLWritable):
             external_storage_path_prefix = None
             if use_external_storage:
                 external_storage_path_prefix = tempfile.mkdtemp()
+
+            import time
+            start = time.time()
             dtrain, dval = None, []
             if has_validation:
                 dtrain, dval = convert_partition_data_to_dmatrix(
@@ -401,6 +404,8 @@ class _XgboostEstimator(Estimator, _XgboostParams, MLReadable, MLWritable):
                     pandas_df_iter, has_weight, has_validation,
                     use_external_storage, external_storage_path_prefix, external_storage_precision)
 
+            print("python bobby build dmatrix in _train_booster: ", time.time() - start)
+
             booster_params, kwargs_params = self._get_dist_booster_params(
                 train_params)
             context.barrier()
@@ -411,12 +416,16 @@ class _XgboostEstimator(Estimator, _XgboostParams, MLReadable, MLWritable):
             messages = context.allGather(message=str(_rabit_args))
             _rabit_args = _get_args_from_message_list(messages)
             evals_result = {}
+            print(booster_params)
+            print(kwargs_params)
             with RabitContext(_rabit_args, context):
+                start = time.time()
                 booster = worker_train(params=booster_params,
                                        dtrain=dtrain,
                                        evals=dval,
                                        evals_result=evals_result,
                                        **kwargs_params)
+                print("python bobby train time: ", time.time() - start)
             context.barrier()
 
             if use_external_storage:
@@ -477,7 +486,7 @@ class _XgboostEstimator(Estimator, _XgboostParams, MLReadable, MLWritable):
         xgb_model_creator = self._get_xgb_model_creator()  # pylint: disable=E1111
         fit_params = self._gen_fit_params_dict()
 
-        if self.getOrDefault(self.num_workers) > 1:
+        if self.getOrDefault(self.num_workers) >= 1:
             return self._fit_distributed(xgb_model_creator, dataset, has_weight,
                                          has_validation, fit_params)
 
@@ -512,6 +521,8 @@ class _XgboostEstimator(Estimator, _XgboostParams, MLReadable, MLWritable):
             else:
                 train_X, train_y, train_w, train_base_margin = train_val_data
                 start = time.time()
+                print("begin to train")
+                print(fit_params)
                 xgb_model.fit(train_X,
                               train_y,
                               sample_weight=train_w,
