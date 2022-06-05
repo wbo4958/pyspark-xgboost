@@ -105,6 +105,9 @@ class _XgboostParams(HasFeaturesCol, HasLabelCol, HasWeightCol,
         del total_params["arbitraryParamsDict"]
         for param in _created_params:
             del total_params[param]
+        total_params["tree_method"] = "gpu_hist"
+        total_params["gpu_id"] = 0
+        print(total_params)
         return get_xgb_model_creator(self._xgb_cls(), total_params)
 
     # Parameters for xgboost.XGBModel()
@@ -486,7 +489,7 @@ class _XgboostEstimator(Estimator, _XgboostParams, MLReadable, MLWritable):
         xgb_model_creator = self._get_xgb_model_creator()  # pylint: disable=E1111
         fit_params = self._gen_fit_params_dict()
 
-        if self.getOrDefault(self.num_workers) >= 1:
+        if self.getOrDefault(self.num_workers) > 1:
             return self._fit_distributed(xgb_model_creator, dataset, has_weight,
                                          has_validation, fit_params)
 
@@ -522,6 +525,8 @@ class _XgboostEstimator(Estimator, _XgboostParams, MLReadable, MLWritable):
                 train_X, train_y, train_w, train_base_margin = train_val_data
                 start = time.time()
                 print("begin to train")
+                # fit_params["tree_method"] = "gpu_hist"
+                # fit_params["gpu_id"] = 0
                 print(fit_params)
                 xgb_model.fit(train_X,
                               train_y,
